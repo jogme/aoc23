@@ -522,19 +522,6 @@ def day10(inp):
     dot_counter = 0
     mapp = [[x for x in y] for y in inp]
 
-    #for y, l in enumerate(mapp):
-    #    for x, c in enumerate(l):
-    #        if not init:
-    #            mapp[y][x] = '0'
-    #        if [x, y] in visited:
-    #            if not [x-1, y] in visited and not [x+1, y] in visited:
-    #                init = not init
-    #            print([x, y], init)
-    #        if not init:
-    #            mapp[y][x] = '0'
-    #        if init and c == '.':
-    #            dot_counter += 1
-
     for x in visited:
         mapp[x[1]][x[0]] = '0'
 
@@ -542,11 +529,44 @@ def day10(inp):
         print(''.join(x))
 
     for y, l in enumerate(mapp):
-        for x, c in enumerate(l):
-            pass
-
+        if not '0' in l:
+            continue
+        dots = [ix for ix, x in enumerate(l) if x == '.']
+        if len(dots) == 0:
+            continue
+        for d in dots:
+            if '0' in l[:d] and '0' in l[d:]:
+                dot_counter += 1
 
     print('b:', dot_counter)
+
+def day11(inp):
+    inp = inp.split('\n')
+    expanded = []
+    for x in inp:
+        if len(set(x)) == 1:
+            expanded.append(x)
+        expanded.append(x)
+    og_inp = inp
+    inp = expanded
+    expanded = [x for x in inp]
+    exp_col = 0
+    for i in range(len(inp[0])):
+        if len(set([x[i] for x in inp])) == 1:
+            for j in range(len(inp)):
+                expanded[j] = expanded[j][:i+exp_col]+'.'+expanded[j][i+exp_col:]
+            exp_col += 1
+
+    galaxies = []
+    for ix, x in enumerate(expanded):
+        if x.find('#') != -1:
+            for r in re.finditer('#', x):
+                galaxies.append([r.start(), ix])
+    a_sum = 0
+    for ig, g1 in enumerate(galaxies[:-1]):
+        for g2 in galaxies[ig:]:
+            a_sum += abs(g1[0]-g2[0]) + abs(g1[1]-g2[1])
+    print('a:', a_sum)
 
 if __name__ == "__main__":
     argpar = argparse.ArgumentParser()
