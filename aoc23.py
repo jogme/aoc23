@@ -542,31 +542,58 @@ def day10(inp):
 
 def day11(inp):
     inp = inp.split('\n')
-    expanded = []
-    for x in inp:
+    exp_cols = []
+    exp_rows = []
+    for ix, x in enumerate(inp):
         if len(set(x)) == 1:
-            expanded.append(x)
-        expanded.append(x)
-    og_inp = inp
-    inp = expanded
-    expanded = [x for x in inp]
-    exp_col = 0
+            exp_rows.append(ix)
     for i in range(len(inp[0])):
         if len(set([x[i] for x in inp])) == 1:
-            for j in range(len(inp)):
-                expanded[j] = expanded[j][:i+exp_col]+'.'+expanded[j][i+exp_col:]
-            exp_col += 1
+            exp_cols.append(i)
+    exp_cols.sort()
+    exp_rows.sort()
 
     galaxies = []
-    for ix, x in enumerate(expanded):
+    for ix, x in enumerate(inp):
         if x.find('#') != -1:
             for r in re.finditer('#', x):
                 galaxies.append([r.start(), ix])
     a_sum = 0
+
+    def expand(galaxy, mul=1):
+        g = [galaxy[0], galaxy[1]]
+        if exp_cols[0] < galaxy[0]:
+            exp_c = 0
+            for x in exp_cols:
+                if x > galaxy[0]:
+                    break
+                exp_c += 1
+            g[0] += exp_c * mul
+            # part be replaces the column instead of adding to it
+            if mul != 1:
+                g[0] -= exp_c
+        if exp_rows[0] < galaxy[1]:
+            exp_r = 0
+            for x in exp_rows:
+                if x > galaxy[1]:
+                    break
+                exp_r += 1
+            g[1] += exp_r * mul
+            if mul != 1:
+                g[1] -= exp_r
+        return g
+
+    b_galaxies = [expand(g, 1000000) for g in galaxies]
+    galaxies = [expand(g) for g in galaxies]
+    b_sum = 0
+
     for ig, g1 in enumerate(galaxies[:-1]):
-        for g2 in galaxies[ig:]:
+        for ig2, g2 in enumerate(galaxies[ig:]):
             a_sum += abs(g1[0]-g2[0]) + abs(g1[1]-g2[1])
+            b_sum += abs(b_galaxies[ig][0]-b_galaxies[ig+ig2][0]) + \
+                     abs(b_galaxies[ig][1]-b_galaxies[ig+ig2][1])
     print('a:', a_sum)
+    print('b:', b_sum)
 
 if __name__ == "__main__":
     argpar = argparse.ArgumentParser()
