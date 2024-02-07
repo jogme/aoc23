@@ -199,6 +199,7 @@ def day5(inp):
                 exit(0)
         b += 1
 
+# 6
 def day6(inp):
     inp = [[int(i) for i in x.split(': ')[1].split()] for x in inp.split('\n')]
 
@@ -239,6 +240,7 @@ def day6(inp):
 
     print('b:', b)
 
+# 7
 def day7(inp):
     inp = inp.split()
     hands = inp[::2]
@@ -332,6 +334,7 @@ def day7(inp):
 
     print('b:', b_sum)
 
+# 8
 def day8(inp):
     inp = inp.split('\n\n')
     instr = inp[0].replace('L', '0').replace('R', '1')
@@ -369,6 +372,7 @@ def day8(inp):
             break
     print('b:', math.lcm(*steps_b))
 
+# 9
 def day9(inp):
     inp = [[int(i) for i in x.split(' ')] for x in inp.split('\n')]
     a_sum = 0
@@ -392,6 +396,7 @@ def day9(inp):
     print('a:', a_sum)
     print('b:', b_sum)
 
+# 10
 def day10(inp):
     NORTH = 0
     SOUTH = 1
@@ -491,55 +496,126 @@ def day10(inp):
     boundary_x = len(inp[0]) - 1
     boundary_y = len(inp) - 1
 
-    queue = [start]
+    # we don't know the direction yet
+    queue = [[*start, [-1]]]
     visited = []
+    visited_dir = []
 
     while len(queue) != 0:
         c = queue.pop(0)
-        visited.append(c)
+        visited.append([c[0], c[1]])
+        visited_dir.append(c[2])
         x = c[0]
         y = c[1]
+        char = inp[y][x]
         # WEST
         if x != 0 and not [x-1, y] in visited and \
             is_valid(inp[y][x], inp[y][x-1], WEST):
-                queue.append([x-1, y])
+                if char == 'F' or char == 'L' or char == '7' or char == 'J':
+                    queue.append([x-1, y, [WEST, c[2][0]]])
+                else:
+                    queue.append([x-1, y, [WEST]])
         # EAST
         elif x < boundary_x and not [x+1, y] in visited and \
             is_valid(inp[y][x], inp[y][x+1], EAST):
-                queue.append([x+1, y])
+                if char == 'F' or char == 'L' or char == '7' or char == 'J':
+                    queue.append([x+1, y, [EAST, c[2][0]]])
+                else:
+                    queue.append([x+1, y, [EAST]])
         # NORTH
         elif y != 0 and not [x, y-1] in visited and \
             is_valid(inp[y][x], inp[y-1][x], NORTH):
-                queue.append([x, y-1])
+                if char == 'F' or char == 'L' or char == '7' or char == 'J':
+                    queue.append([x, y-1, [NORTH, c[2][0]]])
+                else:
+                    queue.append([x, y-1, [NORTH]])
         # SOUTH
         elif y < boundary_y and not [x, y+1] in visited and \
             is_valid(inp[y][x], inp[y+1][x], SOUTH):
-                queue.append([x, y+1])
+                if char == 'F' or char == 'L' or char == '7' or char == 'J':
+                    queue.append([x, y+1, [SOUTH, c[2][0]]])
+                else:
+                    queue.append([x, y+1, [SOUTH]])
+
+    last = visited[-1]
+    # WEST
+    if [last[0]+1, last[1], -1] == start:
+        visited_dir[0][0] = WEST
+    # EAST
+    elif [last[0]-1, last[1], -1] == start:
+        visited_dir[0][0] = EAST
+    # NORTH
+    elif [last[0], last[1]-1, -1] == start:
+        visited_dir[0][0] = NORTH
+    # SOUTH
+    elif [last[0], last[1]+1, -1] == start:
+        visited_dir[0][0] = SOUTH
+    # I know that my inputs S is a corner
+    # detection could be made, but I won't atm
+    # it is already overcomplicated
+    visited_dir[0].append(visited_dir[-1][0])
 
     print('a:', int(len(visited)/2))
 
-    init = False
-    dot_counter = 0
-    mapp = [[x for x in y] for y in inp]
+    tile_counter = 0
 
-    for x in visited:
-        mapp[x[1]][x[0]] = '0'
+    visited_dir = visited_dir[1:] + visited_dir[:1]
 
-    for x in mapp:
-        print(''.join(x))
+    first_one = [min([x[0] for x in visited if x[1] == start[1]]), start[1]]
+    leftmost_dir = visited_dir[visited.index(first_one)][0]
+    directions = [0, 0, 0, 0]
+    # what direction is the loop according to the examined pos
+    if leftmost_dir == NORTH or leftmost_dir == EAST:
+        directions[NORTH] = EAST
+        directions[SOUTH] = WEST
+        directions[WEST] = NORTH
+        directions[EAST] = SOUTH
+    else: # SOUTH and WEST
+        directions[NORTH] = WEST
+        directions[SOUTH] = EAST
+        directions[WEST] = SOUTH
+        directions[EAST] = NORTH
 
-    for y, l in enumerate(mapp):
-        if not '0' in l:
-            continue
-        dots = [ix for ix, x in enumerate(l) if x == '.']
-        if len(dots) == 0:
-            continue
-        for d in dots:
-            if '0' in l[:d] and '0' in l[d:]:
-                dot_counter += 1
+    queue_b = [start]
+    visited_b = []
+    out = []
+    for x in inp:
+        out.append([*x])
 
-    print('b:', dot_counter)
+    for ix, x in enumerate(out):
+        for iy, y in enumerate(x):
+            if not [iy, ix] in visited:
+                out[ix][iy] = '.'
 
+    #direction style solution
+    while len(queue_b) != 0:
+        c = queue_b.pop(0)
+        visited_b.append(c)
+        n = [c[0], c[1]-1] if c[1]-1 >= 0 else None
+        s = [c[0], c[1]+1] if c[1]+1 <= boundary_y else None
+        w = [c[0]-1, c[1]] if c[0]-1 >= 0 else None
+        e = [c[0]+1, c[1]] if c[0]+1 <= boundary_x else None
+        sides = [n, s, w, e]
+
+        if c in visited:
+            c_dir = visited_dir[visited.index(c)][0]
+            if sides[c_dir] and (not sides[c_dir] in visited_b) and (not sides[c_dir] in queue_b):
+                queue_b.append(sides[c_dir])
+                sides[c_dir] = None
+            for x in visited_dir[visited.index(c)]:
+                c_dir = directions[x]
+                if sides[c_dir] and (not sides[c_dir] in visited_b) and (not sides[c_dir] in queue_b):
+                    queue_b.append(sides[c_dir])
+                    sides[c_dir] = None
+        else:
+            tile_counter += 1
+            for x in sides:
+                if x and (not x in visited_b) and (not x in queue_b):
+                    queue_b.append(x)
+
+    print('b:', tile_counter)
+
+# 11
 def day11(inp):
     inp = inp.split('\n')
     exp_cols = []
@@ -594,6 +670,10 @@ def day11(inp):
                      abs(b_galaxies[ig][1]-b_galaxies[ig+ig2][1])
     print('a:', a_sum)
     print('b:', b_sum)
+
+# 12
+def day12(inp):
+    pass
 
 if __name__ == "__main__":
     argpar = argparse.ArgumentParser()
