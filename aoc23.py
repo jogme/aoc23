@@ -11,6 +11,8 @@ import re
 from functools import cmp_to_key
 # day 8
 import math
+# day 12
+from functools import lru_cache
 
 def load_input(day, dummy):
     if dummy:
@@ -675,46 +677,53 @@ def day11(inp):
 # 12
 def day12(inp):
     inp = inp.split('\n')
+    arrangement = None
 
-    def check_row(row, arrangement):
+    def check_row(row):
         until = row.find('?')
+        if until != -1:
+            row = row[:until]
+        r = [x for x in row.replace('?', '.').split('.') if not x == '']
+        len_r = len(r)
         if until == -1:
-            r = row
-        else:
-            r = row[:until]
-        r = r.replace('?', '.').split('.')
-        while (r.count('')):
-            r.remove('')
-        if until == -1:
-            if len(r) != len(arrangement):
+            if len_r != len(arrangement) or r != arrangement:
                 return False
-            for ix, x in enumerate(r):
-                if x.count('#') != arrangement[ix]:
-                    return False
         else:
+            if len_r > len(arrangement):
+                return False
+            len_r -= 1
             for ix, x in enumerate(r):
-                if ix >= len(arrangement) or x.count('#') > arrangement[ix]:
-                    return False
+                if len_r != ix:
+                    if x != arrangement[ix]:
+                        return False
+                else:
+                    if not x in arrangement[ix]:
+                        return False
         return True
 
-    def solve_row(springs, arrangement):
+    def solve_row(springs):
         if springs.find('?') == -1:
-            return check_row(springs, arrangement)
-        s = []
-        count = 0
-        s.append(springs.replace('?', '.', 1))
-        s.append(springs.replace('?', '#', 1))
+            return check_row(springs)
+        s1 = springs.replace('?', '.', 1)
+        s2 = springs.replace('?', '#', 1)
 
-        for x in s:
-            if check_row(x, arrangement):
-                count += solve_row(x, arrangement)
-        return count
+        return (solve_row(s1) if check_row(s1) else False) + \
+                (solve_row(s2) if check_row(s2) else False)
 
     a = 0
     for x in inp:
         tmp = x.split()
-        a += solve_row(tmp[0], [int(x) for x in tmp[1].split(',')])
+        arrangement = ['#'*int(x) for x in tmp[1].split(',')]
+        a += solve_row(tmp[0])
     print('a:', a)
+    b = 0
+    for ix, x in enumerate(inp):
+        tmp = x.split()
+        arrangement = ['#'*int(x) for x in tmp[1].split(',')]*5
+        print(((tmp[0]+'?')*5)[:-1])
+        b += solve_row(((tmp[0]+'?')*5)[:-1])
+        print(ix)
+    print('b:', b)
 
 if __name__ == "__main__":
     argpar = argparse.ArgumentParser()
