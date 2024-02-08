@@ -1,4 +1,5 @@
 from load_input import load_day
+import sys
 import argparse
 # day 1
 import time
@@ -680,5 +681,13 @@ if __name__ == "__main__":
     argpar.add_argument('-d', '--dummy', default=False, action='store_true', help='Use %day%.dummy input file')
     argpar.add_argument('day_num', type=int, help='The day of the challange')
     args = argpar.parse_args()
-    inp = load_input(args.day_num, args.dummy)
-    locals()['day{}'.format(args.day_num)](inp)
+    try:
+        inp = load_input(args.day_num, args.dummy)
+    except FileNotFoundError:
+        print('No file found', file=sys.stderr)
+        exit(-1)
+
+    try:
+        locals()['day{}'.format(args.day_num)](inp)
+    except KeyError:
+        print('Day {} is not yet implemented'.format(args.day_num), file=sys.stderr)
