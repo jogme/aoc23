@@ -674,7 +674,47 @@ def day11(inp):
 
 # 12
 def day12(inp):
-    pass
+    inp = inp.split('\n')
+
+    def check_row(row, arrangement):
+        until = row.find('?')
+        if until == -1:
+            r = row
+        else:
+            r = row[:until]
+        r = r.replace('?', '.').split('.')
+        while (r.count('')):
+            r.remove('')
+        if until == -1:
+            if len(r) != len(arrangement):
+                return False
+            for ix, x in enumerate(r):
+                if x.count('#') != arrangement[ix]:
+                    return False
+        else:
+            for ix, x in enumerate(r):
+                if ix >= len(arrangement) or x.count('#') > arrangement[ix]:
+                    return False
+        return True
+
+    def solve_row(springs, arrangement):
+        if springs.find('?') == -1:
+            return check_row(springs, arrangement)
+        s = []
+        count = 0
+        s.append(springs.replace('?', '.', 1))
+        s.append(springs.replace('?', '#', 1))
+
+        for x in s:
+            if check_row(x, arrangement):
+                count += solve_row(x, arrangement)
+        return count
+
+    a = 0
+    for x in inp:
+        tmp = x.split()
+        a += solve_row(tmp[0], [int(x) for x in tmp[1].split(',')])
+    print('a:', a)
 
 if __name__ == "__main__":
     argpar = argparse.ArgumentParser()
