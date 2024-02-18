@@ -14,7 +14,6 @@ import math
 # day 12
 from functools import lru_cache
 # day 13
-from statistics import mode
 from collections import Counter
 
 def load_input(day, dummy):
@@ -742,18 +741,32 @@ def day13(inp):
                 else:
                     if row[:center] == row[center:center+offset][::-1]:
                         possible.append(center)
-        index = mode(possible)
-        if len(x) == possible.count(index):
-            return index
+        index = Counter(possible).most_common(2)
+        ret = []
+        # this is for a
+        if len(x) == index[0][1]:
+            ret.append(index[0][0])
         else:
-            return 0
+            ret.append(0)
+        # these are for b
+        if len(x)-1 == index[0][1]:
+            ret.append(index[0][0])
+        elif len(x)-1 == index[1][1]:
+            ret.append(index[1][0])
+        else:
+            ret.append(0)
+        return ret
+
     a = 0
+    b = 0
     for x in inp:
         vertical = check_it(x)
         # rotate the matrix
         horizontal = check_it(list(reversed(list(zip(*x)))))
-        a += vertical + (100*horizontal)
+        a += vertical[0] + (100*horizontal[0])
+        b += vertical[1] + (100*horizontal[1])
     print('a:', a)
+    print('b:', b)
 
 if __name__ == "__main__":
     argpar = argparse.ArgumentParser()
