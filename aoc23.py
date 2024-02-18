@@ -13,6 +13,9 @@ from functools import cmp_to_key
 import math
 # day 12
 from functools import lru_cache
+# day 13
+from statistics import mode
+from collections import Counter
 
 def load_input(day, dummy):
     if dummy:
@@ -724,6 +727,33 @@ def day12(inp):
         b += solve_row(((tmp[0]+'?')*5)[:-1])
         print(ix)
     print('b:', b)
+
+# 13
+def day13(inp):
+    inp = [x.split('\n') for x in inp.split('\n\n')]
+    def check_it(x):
+        possible = []
+        for row in x:
+            for center in range(1, len(row)):
+                offset = center if center < len(row[center:]) else len(row[center:])
+                if center > len(row)/2:
+                    if row[center-offset:center] == row[center:][::-1]:
+                        possible.append(center)
+                else:
+                    if row[:center] == row[center:center+offset][::-1]:
+                        possible.append(center)
+        index = mode(possible)
+        if len(x) == possible.count(index):
+            return index
+        else:
+            return 0
+    a = 0
+    for x in inp:
+        vertical = check_it(x)
+        # rotate the matrix
+        horizontal = check_it(list(reversed(list(zip(*x)))))
+        a += vertical + (100*horizontal)
+    print('a:', a)
 
 if __name__ == "__main__":
     argpar = argparse.ArgumentParser()
